@@ -1,11 +1,14 @@
 const express = require('express');
 const homeController = require('../controllers/home_controller');
-// const actionNameController = require('../controllers/action_controller');
+
 const router = express.Router();
 
 console.log('router loaded');
 
 router.get('/', homeController.home);
-// router.get('/', actionNameController.actionName);
+router.use('/users', require('./users'));
+
+// For any futher routes, access from here
+// router.use('/routerName', require('./routerFile));
 
 module.exports = router;
