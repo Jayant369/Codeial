@@ -1,59 +1,58 @@
 const Comment = require('../models/comment');
 const Post = require('../models/post');
 
-module.exports.create = function(req, res){
+module.exports.create = async function(req, res){
 
     let postId = (req.body.post).trim(); 
 
-    Post.findById(postId, function(err, post){
-
-        if(err){
-            console.log('error while finding the post');
-            return;
-        }
+    try{
+        let post = await Post.findById(postId);
 
         if(post){
 
-            Comment.create({
+            let comment = await Comment.create({
                 content: req.body.content,
                 post: postId,
                 user: req.user._id
-            }, function(err, comment){
-                // Handle Error
-                if(err){
-                    console.log('error in creating comment');
-                    return;
-                }
-                post.comments.push(comment);
-                post.save();
-
-                res.redirect('/');
             });
 
-        }
+            post.comments.push(comment);
+            post.save();
 
-    });
+            res.redirect('/');
+
+        }
+    }
+    catch(err){
+        console.log('Error', err);
+        return;
+    }
+
 }
 
-module.exports.destroy = function(req, res){
+module.exports.destroy = async function(req, res){
 
-    Comment.findById(req.params.id, function(err, comment){
+    try{
+        let comment = await Comment.findById(req.params.id);
 
         if(comment.user == req.user.id){
-            
+                
             let postId = comment.post;
 
             comment.remove();
 
-            Post.findByIdAndUpdate(postId, {$pull : {comments: req.params.id}}, function(err, post){
-                return res.redirect('back');
-            });
+            let post = Post.findByIdAndUpdate(postId, {$pull : {comments: req.params.id}});
+
+            return res.redirect('back');
 
         }
         else{
             return res.redirect('back');
         }
-
-    });
+    }
+    catch(err){
+        console.log('Error', err);
+        return;
+    }
 
 }
